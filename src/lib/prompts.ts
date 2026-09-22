@@ -21,6 +21,7 @@ SCHEMA:
   "format": "commander" | null,           // standard, modern, commander, pioneer, legacy, etc.
   "rarity": "mythic" | null,              // common, uncommon, rare, mythic
   "flags": ["reserved"] | null,           // reserved, foil, reprint, etc.
+  "artTreatment": "alternate" | null,     // alternate, borderless, showcase, extended, inverted, default
   "price": {"currency": "usd", "op": "<", "value": 50} | null,
   "set": "Bloomburrow" | null             // set NAME as the user said it, not a code
 }
@@ -34,6 +35,8 @@ RULES:
 - "mana rocks" → types: ["artifact"], oracle: ["add"], manaValue as appropriate
 - "for commander" with colors → colorIdentity + format: "commander"
 - "cheap" usually means manaValue <= 3 unless context suggests otherwise
+- "full art", "alternate art", or "special art" → artTreatment: "alternate" (NOT flags: ["full"])
+- "borderless" → artTreatment: "borderless"; "showcase" → "showcase"
 - Negation ("aren't", "not", "without") → notTypes, notOracle, or notKeywords`;
 
 const EXAMPLES = `EXAMPLES:
@@ -74,7 +77,10 @@ Input:  big green creatures with trample power 5 or more
 Output: {"colors":["green"],"types":["creature"],"keywords":["trample"],"power":{"op":">=","value":5},"set":null}
 
 Input:  black cards that make opponents discard but not discard a card
-Output: {"colors":["black"],"oracle":["discard"],"notOracle":["discard a card"],"set":null}`;
+Output: {"colors":["black"],"oracle":["discard"],"notOracle":["discard a card"],"set":null}
+
+Input:  full art cards from reality fracture
+Output: {"artTreatment":"alternate","set":"Reality Fracture"}`;
 
 export const SYSTEM_PROMPT = `${RULES}
 

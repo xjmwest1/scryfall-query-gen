@@ -11,6 +11,8 @@ export interface PriceFilter {
   value: number;
 }
 
+import { normalizeArtTreatment } from "./artTreatments";
+
 export interface SearchIntent {
   colors: string[] | null;
   colorIdentity: string[] | null;
@@ -27,6 +29,7 @@ export interface SearchIntent {
   format: string | null;
   rarity: string | null;
   flags: string[] | null;
+  artTreatment: string | null;
   price: PriceFilter | null;
   set: string | null;
 }
@@ -47,6 +50,7 @@ export const EMPTY_SEARCH_INTENT: SearchIntent = {
   format: null,
   rarity: null,
   flags: null,
+  artTreatment: null,
   price: null,
   set: null,
 };
@@ -166,6 +170,7 @@ export function normalizeSearchIntent(raw: Record<string, unknown>): SearchInten
     format: raw.format ? String(raw.format).trim().toLowerCase() : null,
     rarity: raw.rarity ? String(raw.rarity).trim().toLowerCase() : null,
     flags: normalizeStringList(raw.flags),
+    artTreatment: normalizeArtTreatment(raw.artTreatment),
     price: normalizePriceFilter(raw.price),
     set,
   };

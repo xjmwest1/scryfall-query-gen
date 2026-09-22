@@ -20,6 +20,7 @@ const STRUCTURED_KEYS = [
   "format",
   "rarity",
   "flags",
+  "artTreatment",
   "price",
 ] as const;
 

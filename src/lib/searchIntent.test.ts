@@ -38,6 +38,16 @@ describe("normalizeSearchIntent", () => {
     expect(intent.oracle).toEqual(["counter"]);
     expect(intent.manaValue).toEqual({ op: "<=", value: 2 });
   });
+
+  it("normalizes art treatment aliases", () => {
+    const intent = normalizeSearchIntent({
+      artTreatment: "full art",
+      set: "Reality Fracture",
+    });
+
+    expect(intent.artTreatment).toBe("alternate");
+    expect(intent.set).toBe("Reality Fracture");
+  });
 });
 
 describe("hasSearchFilters", () => {
@@ -45,5 +55,16 @@ describe("hasSearchFilters", () => {
     expect(hasSearchFilters({ ...normalizeSearchIntent({ set: "Bloomburrow" }) })).toBe(
       false,
     );
+  });
+
+  it("detects art treatment filters", () => {
+    expect(
+      hasSearchFilters({
+        ...normalizeSearchIntent({
+          artTreatment: "alternate",
+          set: "Reality Fracture",
+        }),
+      }),
+    ).toBe(true);
   });
 });

@@ -35,6 +35,15 @@ describe("buildFinalQuery", () => {
     expect(query).toBe("s:blb");
   });
 
+  it("maps full art to alternate art treatment with set", async () => {
+    const query = await buildFinalQuery(
+      '{"artTreatment":"alternate","set":"Reality Fracture"}',
+    );
+    expect(query).toBe(
+      "(border:borderless OR frame:inverted OR frame:extendedart OR is:full) s:fra",
+    );
+  });
+
   it("supports legacy plain-text output", async () => {
     const query = await buildFinalQuery("c:u t:instant o:counter mv<=2");
     expect(query).toBe("c:u t:instant o:counter mv<=2");

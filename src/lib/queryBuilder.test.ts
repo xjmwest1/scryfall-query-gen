@@ -18,6 +18,7 @@ const baseIntent: SearchIntent = {
   format: null,
   rarity: null,
   flags: null,
+  artTreatment: null,
   price: null,
   set: null,
 };
@@ -79,5 +80,15 @@ describe("buildScryfallQuery", () => {
       price: { currency: "usd", op: "<", value: 50 },
     });
     expect(query).toBe("is:reserved usd<50");
+  });
+
+  it("builds alternate art treatment instead of is:full", () => {
+    const query = buildScryfallQuery({
+      ...baseIntent,
+      artTreatment: "alternate",
+    });
+    expect(query).toBe(
+      "(border:borderless OR frame:inverted OR frame:extendedart OR is:full)",
+    );
   });
 });

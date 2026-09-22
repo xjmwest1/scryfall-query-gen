@@ -1,3 +1,4 @@
+import { artTreatmentToQuery } from "./artTreatments";
 import type { NumericFilter, PriceFilter, SearchIntent } from "./searchIntent";
 import { colorsToQuery, normalizeColorList } from "./searchIntent";
 
@@ -78,6 +79,13 @@ export function buildScryfallQuery(intent: SearchIntent): string {
 
   if (intent.flags?.length) {
     clauses.push(...intent.flags.map((flag) => `is:${flag}`));
+  }
+
+  if (intent.artTreatment) {
+    const treatmentClause = artTreatmentToQuery(intent.artTreatment);
+    if (treatmentClause) {
+      clauses.push(treatmentClause);
+    }
   }
 
   if (intent.price) {
