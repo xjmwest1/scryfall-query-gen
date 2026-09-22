@@ -2,7 +2,9 @@
  * Scryfall art/frame treatment mappings.
  *
  * Note: `is:full` means "full extended art" only (2 cards in FRA).
- * Colloquial "full art" usually means borderless / showcase / special frames.
+ * Colloquial "full art" includes non-default frames plus default-frame
+ * chase printings (e.g. Japan Showcase Emrakul at cn 403+) that Scryfall
+ * still tags as `is:default`.
  */
 export const ART_TREATMENT_ALIASES: Record<string, string> = {
   alternate: "alternate",
@@ -22,8 +24,7 @@ export const ART_TREATMENT_ALIASES: Record<string, string> = {
 };
 
 /** Alternate/special-art treatments common in modern sets. */
-export const ALTERNATE_ART_QUERY =
-  "(border:borderless OR frame:inverted OR frame:extendedart OR is:full)";
+export const ALTERNATE_ART_QUERY = "(not:default OR cn>=400)";
 
 export function normalizeArtTreatment(value: unknown): string | null {
   if (value === null || value === undefined) return null;

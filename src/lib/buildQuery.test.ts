@@ -39,9 +39,7 @@ describe("buildFinalQuery", () => {
     const query = await buildFinalQuery(
       '{"artTreatment":"alternate","set":"Reality Fracture"}',
     );
-    expect(query).toBe(
-      "(border:borderless OR frame:inverted OR frame:extendedart OR is:full) s:fra",
-    );
+    expect(query).toBe("(not:default OR cn>=400) s:fra");
   });
 
   it("supports legacy plain-text output", async () => {

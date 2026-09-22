@@ -87,8 +87,6 @@ describe("buildScryfallQuery", () => {
       ...baseIntent,
       artTreatment: "alternate",
     });
-    expect(query).toBe(
-      "(border:borderless OR frame:inverted OR frame:extendedart OR is:full)",
-    );
+    expect(query).toBe("(not:default OR cn>=400)");
   });
 });
