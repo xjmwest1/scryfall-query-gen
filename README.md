@@ -9,10 +9,10 @@ Turn plain-English Magic: The Gathering card descriptions into [Scryfall](https:
 ## How it works
 
 1. Describe the cards you want in plain English.
-2. A small on-device LLM (SmolLM2 360M via [WebLLM](https://webllm.mlc.ai/)) generates a Scryfall query.
-3. You're redirected to Scryfall with that query applied.
+2. A small on-device LLM (SmolLM2 360M via [WebLLM](https://webllm.mlc.ai/)) extracts **structured filters** (colors, types, oracle text, format, set name, etc.).
+3. App utilities build valid Scryfall syntax, resolve set names via the Scryfall API, and redirect you to the search.
 
-All inference runs locally in your browser. No server, no API keys.
+All LLM inference runs locally in your browser. Set name lookup uses Scryfall's `/sets` API (cached).
 
 ## Requirements
 
