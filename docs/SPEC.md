@@ -1,6 +1,6 @@
 # Scryfall Query Generator — Product & Technical Specification
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Date:** 2025-09-22  
 **Status:** Draft
 
@@ -18,10 +18,9 @@ A single-page web application that:
 
 1. Accepts a natural-language description of desired cards.
 2. Uses a **small LLM running entirely in the browser** to produce a valid Scryfall query string.
-3. Executes that query against the Scryfall API and renders matching cards.
-4. Lets the user refine, copy, or open the query on Scryfall directly.
+3. **Redirects the user to Scryfall** with the generated query applied (`https://scryfall.com/search?q=...`).
 
-All LLM inference happens on-device. No backend server, no OpenAI API key, no user data sent to third parties.
+All LLM inference happens on-device. No backend server, no OpenAI API key, no Scryfall API calls from our app. Scryfall handles search, filtering, and result display on their site.
 
 ### 1.3 Target Users
 
@@ -40,10 +39,10 @@ All LLM inference happens on-device. No backend server, no OpenAI API key, no us
 |---|------|
 | G1 | Convert common English card descriptions to correct Scryfall syntax |
 | G2 | Run LLM inference fully client-side (privacy + zero hosting cost) |
-| G3 | Display search results inline with card images and key stats |
-| G4 | Show the generated query so users can learn Scryfall syntax |
+| G3 | Redirect to Scryfall with the generated query applied |
+| G4 | Show the generated query briefly so users can learn Scryfall syntax (optional copy before redirect) |
 | G5 | Work on modern Chromium browsers with WebGPU |
-| G6 | First meaningful result within ~30s of initial page load (including model download) |
+| G6 | First redirect within ~30s of initial page load (including model download) |
 
 ### 2.2 Non-Goals (v1)
 
@@ -54,7 +53,7 @@ All LLM inference happens on-device. No backend server, no OpenAI API key, no us
 | NG3 | Mobile-first / Safari support | WebGPU support is limited on Safari/iOS in 2025 |
 | NG4 | Multi-turn conversational refinement | v1 is single-shot; chat mode is a future enhancement |
 | NG5 | Training a custom model | Use off-the-shelf Llama 3.2 with prompt engineering |
-| NG6 | Offline Scryfall card database | Use live API; full local DB is ~500MB+ |
+| NG6 | Inline card results / Scryfall API integration | Scryfall's site handles search and display; we only build the query URL |
 
 ---
 
@@ -64,11 +63,11 @@ All LLM inference happens on-device. No backend server, no OpenAI API key, no us
 
 | ID | Story | Acceptance Criteria |
 |----|-------|-------------------|
-| US-1 | As a player, I type "green creatures that ramp mana" and get results | Query contains `c:g t:creature` and a ramp-related `o:` clause; cards render |
-| US-2 | As a player, I see the generated Scryfall query | Query displayed in a copyable code block |
-| US-3 | As a player, I click "Open in Scryfall" to continue on scryfall.com | Link opens `https://scryfall.com/search?q=<encoded query>` |
+| US-1 | As a player, I type "green creatures that ramp mana" and am taken to Scryfall | Browser navigates to `https://scryfall.com/search?q=...` with a valid query containing `c:g t:creature` and a ramp-related clause |
+| US-2 | As a player, I see the generated query before redirect (optional) | Query shown briefly in UI or via "Copy query" so I can learn the syntax |
+| US-3 | As a player, I am redirected automatically after generation | No extra click required; `window.location.assign()` or `window.open()` fires on success |
 | US-4 | As a player, I see a loading indicator while the model downloads | Progress bar shows model download % on first visit |
-| US-5 | As a player, I can edit the generated query before searching | Editable query field; manual search button |
+| US-5 | As a player, I can cancel or edit before redirect | Short delay or "Edit query" option before navigation (configurable) |
 
 ### 3.2 Secondary
 
@@ -76,7 +75,7 @@ All LLM inference happens on-device. No backend server, no OpenAI API key, no us
 |----|-------|-------------------|
 | US-6 | As a player, I see example prompts to try | 3–5 clickable example queries on empty state |
 | US-7 | As a player, I can copy the query to clipboard | One-click copy with toast confirmation |
-| US-8 | As a player, I see query explanation hints | Optional tooltip breaking down each clause |
+| US-8 | As a player, I can open Scryfall in a new tab instead of same tab | Setting or modifier key (e.g. Ctrl+Enter) uses `window.open()` |
 
 ---
 
@@ -100,13 +99,14 @@ All LLM inference happens on-device. No backend server, no OpenAI API key, no us
 │                        │                                  │
 │                 ┌──────▼──────┐                           │
 │                 │  Scryfall   │                           │
-│                 │  API Client │                           │
+│                 │ URL Builder │                           │
 │                 └──────┬──────┘                           │
 └────────────────────────┼────────────────────────────────┘
-                         │ HTTPS
+                         │ redirect (navigation)
                          ▼
               ┌─────────────────────┐
-              │  api.scryfall.com   │
+              │  scryfall.com/search │
+              │  ?q=<encoded query>  │
               └─────────────────────┘
 ```
 
@@ -116,8 +116,8 @@ All LLM inference happens on-device. No backend server, no OpenAI API key, no us
 2. **Prompt assembly** → system prompt + Scryfall syntax cheat sheet + user input
 3. **LLM inference** (Web Worker) → raw query string
 4. **Post-processing** → strip markdown/quotes, validate characters, truncate to 1000 chars (Scryfall limit)
-5. **Scryfall API** → `GET /cards/search?q=<query>`
-6. **Render** → card grid with image, name, mana cost, type line
+5. **URL build** → `https://scryfall.com/search?q=${encodeURIComponent(query)}`
+6. **Redirect** → `window.location.assign(url)` (same tab) or `window.open(url)` (new tab)
 
 ### 4.3 Component Breakdown
 
@@ -126,11 +126,9 @@ All LLM inference happens on-device. No backend server, no OpenAI API key, no us
 | `App` | Layout, routing (single page) |
 | `SearchInput` | Text area, submit, example prompts |
 | `ModelLoader` | Download progress, WebGPU detection, error states |
-| `QueryDisplay` | Generated query, edit, copy, Scryfall link |
-| `CardGrid` | Paginated card results |
-| `CardTile` | Single card image + metadata |
+| `QueryPreview` | Brief display of generated query before redirect; copy button |
 | `llmWorker` | Web Worker running LLM inference |
-| `scryfallClient` | API wrapper with rate limiting |
+| `scryfallUrl` | Build encoded Scryfall search URL from query string |
 | `queryValidator` | Sanitize and validate LLM output |
 
 ---
@@ -258,59 +256,65 @@ The LLM output will be cleaned before use:
 
 ---
 
-## 7. Scryfall API Integration
+## 7. Scryfall Redirect
 
-### 7.1 Endpoints
+The app does **not** call the Scryfall API. It only constructs a search URL and navigates the user to Scryfall's website, which runs the query and displays results.
 
-| Endpoint | Use |
-|----------|-----|
-| `GET /cards/search?q={query}` | Primary search |
-| `GET /cards/named?fuzzy={name}` | Fallback for exact-name lookups (future) |
+### 7.1 URL Format
 
-### 7.2 Request Requirements
+```
+https://scryfall.com/search?q=<url-encoded-query>
+```
 
-Per [Scryfall API docs](https://scryfall.com/docs/api):
+Example:
 
-- `User-Agent`: `ScryfallQueryGen/1.0 (+https://github.com/<org>/<repo>)`
-- `Accept`: `application/json`
-- Rate limit: **10 requests/second** — implement client-side throttle with 100ms minimum between requests
+```
+Input query:  c:r t:creature o:"enters" o:damage
+Redirect URL: https://scryfall.com/search?q=c%3Ar%20t%3Acreature%20o%3A%22enters%22%20o%3Adamage
+```
 
-### 7.3 Response Handling
+### 7.2 URL Builder
 
 ```typescript
-interface ScryfallSearchResponse {
-  object: "list";
-  total_cards: number;
-  has_more: boolean;
-  next_page?: string;
-  data: ScryfallCard[];
+const SCRYFALL_SEARCH_BASE = "https://scryfall.com/search";
+
+export function buildScryfallSearchUrl(query: string): string {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    throw new Error("Query cannot be empty");
+  }
+  return `${SCRYFALL_SEARCH_BASE}?q=${encodeURIComponent(trimmed)}`;
 }
 
-interface ScryfallCard {
-  id: string;
-  name: string;
-  mana_cost: string;
-  type_line: string;
-  oracle_text: string;
-  image_uris?: { normal: string; small: string };
-  card_faces?: Array<{ image_uris: { normal: string } }>;
-  scryfall_uri: string;
+export function redirectToScryfall(query: string, newTab = false): void {
+  const url = buildScryfallSearchUrl(query);
+  if (newTab) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  } else {
+    window.location.assign(url);
+  }
 }
 ```
 
-### 7.4 Error Cases
+Use `encodeURIComponent` so spaces, quotes, colons, and parentheses are encoded correctly.
 
-| Scryfall Response | UI Behavior |
-|-------------------|-------------|
-| 200, `total_cards: 0` | "No cards found. Try editing the query." |
-| 404 | "Invalid query syntax" — show query for editing |
-| 400 | "Bad request" — likely malformed query |
-| 429 / network error | "Scryfall is busy. Retrying..." with backoff |
-| `has_more: true` | "Load more" button for pagination |
+### 7.3 Redirect Behavior
 
-### 7.5 CORS
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| **Default** | Submit / Enter | Same-tab redirect immediately after query is validated |
+| **New tab** | Ctrl+Enter or user preference | `window.open()` so the generator page stays open |
+| **Preview** (optional) | Setting enabled | Show query for 1–2s with "Redirecting…" then navigate |
 
-Scryfall's API supports CORS for browser requests. No proxy needed.
+### 7.4 Error Cases (pre-redirect)
+
+| Condition | UI Behavior |
+|-----------|-------------|
+| Empty LLM output | "Couldn't generate a query. Try rephrasing." — stay on page |
+| Invalid characters after validation | Show query + "Edit and search" manual link |
+| User cancels preview | Stay on page; query remains editable |
+
+Invalid syntax on Scryfall is handled by Scryfall's own UI after redirect; we do not pre-validate against their API.
 
 ---
 
@@ -329,25 +333,21 @@ Scryfall's API supports CORS for browser requests. No proxy needed.
 │  │  they enter the battlefield"                 │  │
 │  └──────────────────────────────────────────────┘  │
 │                                                    │
-│  [ Search ]                                        │
+│  [ Search on Scryfall ]                            │
 │                                                    │
 │  Try: "blue counterspells" · "ramp in green" ·    │
 │       "two-card combos in black"                   │
 ├────────────────────────────────────────────────────┤
-│  Generated Query                                   │
-│  ┌──────────────────────────────────────────────┐  │
-│  │ c:r t:creature o:"enters" o:damage      [📋] │  │
-│  └──────────────────────────────────────────────┘  │
-│  [ Open in Scryfall ↗ ]                            │
+│  (while generating)                                │
+│  ⏳ Generating query…                              │
 ├────────────────────────────────────────────────────┤
-│  Results (42 cards)                                │
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐              │
-│  │ card │ │ card │ │ card │ │ card │              │
-│  │ img  │ │ img  │ │ img  │ │ img  │              │
-│  └──────┘ └──────┘ └──────┘ └──────┘              │
-│  ...                                               │
-│  [ Load more ]                                     │
+│  (optional brief preview before redirect)          │
+│  Generated: c:r t:creature o:"enters" o:damage     │
+│  Redirecting to Scryfall…              [ Copy 📋 ] │
 └────────────────────────────────────────────────────┘
+         │
+         ▼  automatic redirect
+   scryfall.com/search?q=...
 ```
 
 ### 8.2 States
@@ -357,17 +357,15 @@ Scryfall's API supports CORS for browser requests. No proxy needed.
 | **First visit — model loading** | Full-screen progress bar: "Downloading AI model (1.2 GB)... 45%" |
 | **Ready** | Search input enabled, example prompts visible |
 | **Generating** | Spinner on search button, input disabled |
-| **Results** | Query display + card grid |
-| **No results** | Empty state with suggestion to edit query |
+| **Redirecting** | Brief query preview + "Opening Scryfall…" (optional 1s delay) |
 | **Error — no WebGPU** | Banner: "WebGPU required. Please use Chrome/Edge 113+." |
-| **Error — model failed** | Retry button + fallback message |
+| **Error — model failed** | Retry button + fallback message; manual Scryfall link if partial query |
 
 ### 8.3 Visual Style
 
 - Dark theme (fits MTG aesthetic, reduces eye strain)
-- Scryfall-inspired card frames for results
-- Mana symbols rendered via [mana-font](https://github.com/andrewgioia/mana) or Scryfall's SVG mana symbols
-- Responsive grid: 4 columns desktop, 2 tablet, 1 mobile
+- Minimal single-screen layout — no results grid (Scryfall owns that experience)
+- Responsive: centered column, comfortable on mobile before redirect
 
 ---
 
@@ -379,9 +377,8 @@ Scryfall's API supports CORS for browser requests. No proxy needed.
 | Build | Vite 6 | Fast dev, native worker support |
 | Styling | Tailwind CSS 4 | Utility-first, dark mode built in |
 | LLM | `@mlc-ai/web-llm` | Primary inference engine |
-| HTTP | Native `fetch` | No axios needed |
 | State | React `useState` / `useReducer` | Simple enough for v1; no Redux |
-| Testing | Vitest + Testing Library | Unit tests for validator, API client |
+| Testing | Vitest + Testing Library | Unit tests for validator, URL builder |
 | Linting | ESLint + Prettier | Standard config |
 | Deployment | GitHub Pages or Cloudflare Pages | Static SPA, no server |
 | CI | GitHub Actions | Lint, test, build, deploy |
@@ -393,28 +390,25 @@ Scryfall's API supports CORS for browser requests. No proxy needed.
 ```
 scryfall-query-gen/
 ├── docs/
-│   └── SPEC.md                 # This document
+│   ├── SPEC.md                 # This document
+│   └── examples/
+│       └── queries.json        # Evaluation dataset
 ├── public/
 │   └── favicon.svg
 ├── src/
 │   ├── components/
 │   │   ├── SearchInput.tsx
-│   │   ├── QueryDisplay.tsx
-│   │   ├── CardGrid.tsx
-│   │   ├── CardTile.tsx
+│   │   ├── QueryPreview.tsx
 │   │   ├── ModelLoader.tsx
 │   │   └── ExamplePrompts.tsx
 │   ├── workers/
 │   │   └── llmWorker.ts        # Web Worker for LLM inference
 │   ├── lib/
-│   │   ├── scryfall.ts         # API client
+│   │   ├── scryfallUrl.ts      # Build search URL + redirect helper
 │   │   ├── queryValidator.ts   # Post-process LLM output
 │   │   └── prompts.ts          # System prompt + examples
 │   ├── hooks/
-│   │   ├── useLLM.ts           # Worker communication hook
-│   │   └── useScryfallSearch.ts
-│   ├── types/
-│   │   └── scryfall.ts         # API response types
+│   │   └── useLLM.ts           # Worker communication hook
 │   ├── App.tsx
 │   ├── main.tsx
 │   └── index.css
@@ -435,9 +429,8 @@ scryfall-query-gen/
 | Model download (first visit) | ~1.2 GB, 30–120s depending on connection |
 | Model load (cached visit) | < 5s |
 | Query generation | < 3s on mid-range GPU |
-| Scryfall API response | < 500ms (network dependent) |
-| Total time to results (cached) | < 5s |
-| Bundle size (excl. model) | < 500 KB gzipped |
+| Time to redirect (cached model) | < 5s end-to-end |
+| Bundle size (excl. model) | < 300 KB gzipped (no API client or card UI) |
 
 ### 11.1 Browser Requirements
 
@@ -455,8 +448,8 @@ WebLLM caches model weights in the browser's Cache API / IndexedDB. Subsequent v
 
 | Concern | Mitigation |
 |---------|------------|
-| User queries sent to cloud LLM | All inference is local; no query data leaves the browser |
-| Scryfall API sees queries | Inherent to search; only the generated syntax string is sent, not the original English |
+| User queries sent to cloud LLM | All inference is local; English input never leaves the browser until redirect |
+| Scryfall sees generated query | Only the syntax string appears in the redirect URL; original English is not sent |
 | XSS via LLM output | Query validator whitelist; never render LLM output as HTML |
 | Model supply chain | Pin exact model version; load from official MLC/HuggingFace CDN |
 | No authentication needed | Public app, no user accounts in v1 |
@@ -471,14 +464,14 @@ WebLLM caches model weights in the browser's Cache API / IndexedDB. Subsequent v
 |--------|-------|
 | `queryValidator` | Strips markdown, enforces length, rejects invalid chars |
 | `prompts` | System prompt contains required syntax reference |
-| `scryfallClient` | URL encoding, rate limiting, error mapping |
+| `scryfallUrl` | Correct `encodeURIComponent` output; empty query throws |
 
 ### 13.2 Integration Tests
 
 | Scenario | Method |
 |----------|--------|
 | Prompt → valid query | Curated test set of 50 English → expected query pairs |
-| Query → Scryfall results | Live API calls in CI (or mocked) |
+| Query → redirect URL | Assert built URL matches `https://scryfall.com/search?q=...` |
 
 ### 13.3 Evaluation Set
 
@@ -504,7 +497,7 @@ Maintain `testdata/queries.json` with ~50 natural-language inputs and expected S
 - Test on Chrome with WebGPU enabled
 - Verify model download + cache behavior
 - Test 10 example prompts end-to-end
-- Verify Scryfall link opens correct search
+- Verify redirect lands on Scryfall with correct `q` parameter
 
 ---
 
@@ -512,12 +505,12 @@ Maintain `testdata/queries.json` with ~50 natural-language inputs and expected S
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
-| 1B model produces incorrect syntax | High | Medium | Strong system prompt + few-shot examples; editable query field; upgrade to 3B |
+| 1B model produces incorrect syntax | High | Medium | Strong system prompt + few-shot examples; optional preview before redirect; upgrade to 3B |
 | WebGPU not available | High | Low (target audience uses Chrome) | Clear error message; document browser requirements |
 | Model download too slow | Medium | Medium | Show progress; cache aggressively; consider smaller quantized variant |
-| Scryfall API changes | Low | Low | Thin client wrapper; pin to documented API version |
-| Scryfall rate limits | Low | Low | Client-side throttle; debounce search |
-| LLM hallucinates nonexistent syntax | Medium | Medium | Post-processing validator; test against known-good operators |
+| Scryfall URL format changes | Low | Very low | Single URL builder function; Scryfall search URLs are stable |
+| LLM hallucinates nonexistent syntax | Medium | Medium | Post-processing validator; user lands on Scryfall which surfaces syntax errors |
+| Redirect feels abrupt | Low | Medium | Optional 1s preview with generated query; Ctrl+Enter for new tab |
 
 ---
 
@@ -533,16 +526,16 @@ Maintain `testdata/queries.json` with ~50 natural-language inputs and expected S
 - [ ] Console-only: English → query string
 - [ ] Evaluate accuracy with 50-query test set
 
-### Phase 2 — Scryfall Integration & UI
-- [ ] Scryfall API client
-- [ ] Search input + query display + card grid
+### Phase 2 — Redirect & UI
+- [ ] Scryfall URL builder + redirect flow
+- [ ] Search input + optional query preview
 - [ ] Model loading progress UI
 - [ ] Example prompts
 
 ### Phase 3 — Polish & Deploy
 - [ ] Dark theme styling
-- [ ] Error states and edge cases
-- [ ] Unit tests
+- [ ] Error states and edge cases (new tab, preview delay)
+- [ ] Unit tests (validator, URL builder)
 - [ ] Deploy to GitHub Pages
 - [ ] README with demo link
 
@@ -563,8 +556,8 @@ Maintain `testdata/queries.json` with ~50 natural-language inputs and expected S
 | Q1 | WebLLM vs Transformers.js? | Leaning WebLLM; build POC with both if time allows |
 | Q2 | Should we support `unique:` display keywords? | Probably not in v1 — let Scryfall defaults apply |
 | Q3 | Custom domain or GitHub Pages? | GitHub Pages for v1 |
-| Q4 | Include mana symbol rendering in results? | Nice-to-have; plain text mana cost is fine for v1 |
-| Q5 | How to handle double-faced card images? | Use `card_faces[0].image_uris` fallback |
+| Q4 | Same-tab vs new-tab redirect default? | Same-tab default; Ctrl+Enter for new tab |
+| Q5 | Show query preview before redirect? | Optional 1s preview; instant redirect as default |
 
 ---
 

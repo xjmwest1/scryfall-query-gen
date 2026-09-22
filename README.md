@@ -10,7 +10,7 @@ Turn plain-English Magic: The Gathering card descriptions into [Scryfall](https:
 
 ## Concept
 
-Users type a natural-language description of the cards they want. A small on-device LLM (Llama 3.2 or similar) translates that description into valid Scryfall syntax. Results are fetched from the Scryfall API and displayed inline — no server, no API keys, no data leaving the browser.
+Users type a natural-language description of the cards they want. A small on-device LLM (Llama 3.2 or similar) translates that description into valid Scryfall syntax, then **redirects you to Scryfall** with that query applied — no server, no API keys, no Scryfall API calls from our app.
 
 ## Planned Stack
 
@@ -18,7 +18,7 @@ Users type a natural-language description of the cards they want. A small on-dev
 |-------|------------|
 | UI | React + TypeScript + Vite |
 | LLM (in-browser) | WebLLM or Transformers.js (Llama 3.2 1B/3B) |
-| Card data | [Scryfall REST API](https://scryfall.com/docs/api) |
+| Search results | Redirect to [scryfall.com/search](https://scryfall.com/search) |
 | Styling | Tailwind CSS |
 
 ## Getting Started
