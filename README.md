@@ -28,6 +28,20 @@ npm run dev
 
 Open http://localhost:5173
 
+## Deploy (free)
+
+This app is static files only — no server required. GitHub Pages hosts it for free.
+
+1. In the repo on GitHub: **Settings → Pages → Build and deployment → Source** → **GitHub Actions**.
+2. Merge to `main` (or push to `main`). The [deploy workflow](.github/workflows/deploy.yml) builds and publishes automatically.
+3. Live site: **https://xjmwest1.github.io/scryfall-query-gen/**
+
+Local preview with the same base path as production:
+
+```bash
+npm run build -- --base /scryfall-query-gen/ && npm run preview
+```
+
 ### Scripts
 
 | Command | Description |
