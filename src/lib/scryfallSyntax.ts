@@ -63,6 +63,7 @@ export const SCRYFALL_SYNTAX_REFERENCE = `
 
 ## Sets and blocks
 - Set code: s:, e:, set:, edition: — s:blb, e:mkm
+- Set names mentioned by the user go in the JSON "set" field (resolved to codes by the app)
 - Block: b:wwk
 - Group (parent/sibling/child sets): g:fin
 - Collector number: cn:1, cn>50

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CreateWebWorkerMLCEngine, type MLCEngineInterface } from "@mlc-ai/web-llm";
+import { buildFinalQuery } from "../lib/buildQuery";
 import { MODEL_ID } from "../lib/model";
 import { SYSTEM_PROMPT } from "../lib/prompts";
-import { validateQuery } from "../lib/queryValidator";
 
 export { MODEL_ID };
 
@@ -100,14 +100,10 @@ export function useLLM(): UseLLMResult {
       });
 
       const raw = response.choices[0]?.message?.content ?? "";
-      const validated = validateQuery(raw);
-
-      if (!validated.ok) {
-        throw new Error(validated.error);
-      }
+      const query = await buildFinalQuery(raw);
 
       setStatus("ready");
-      return validated.query;
+      return query;
     } catch (err) {
       setStatus("ready");
       throw err instanceof Error ? err : new Error("Failed to generate query.");

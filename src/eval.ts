@@ -1,8 +1,8 @@
 import { CreateMLCEngine } from "@mlc-ai/web-llm";
 import examples from "../docs/examples/queries.json";
+import { buildFinalQuery } from "./lib/buildQuery";
 import { MODEL_ID } from "./lib/model";
 import { SYSTEM_PROMPT } from "./lib/prompts";
-import { validateQuery } from "./lib/queryValidator";
 
 const logEl = document.getElementById("log");
 
@@ -48,11 +48,7 @@ async function generateQuery(
   });
 
   const raw = response.choices[0]?.message?.content ?? "";
-  const validated = validateQuery(raw);
-  if (!validated.ok) {
-    throw new Error(validated.error);
-  }
-  return validated.query;
+  return await buildFinalQuery(raw);
 }
 
 async function main() {

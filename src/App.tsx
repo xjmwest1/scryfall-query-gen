@@ -99,7 +99,7 @@ export default function App() {
       </div>
 
       <footer className="mt-auto pt-12 text-center text-xs text-[var(--color-text-muted)]">
-        LLM runs entirely in your browser. Only the generated query is sent to Scryfall.
+        LLM runs in your browser. Set names are resolved via the Scryfall API before redirect.
       </footer>
     </main>
   );

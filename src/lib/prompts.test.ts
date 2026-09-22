@@ -10,6 +10,12 @@ describe("SYSTEM_PROMPT", () => {
     expect(SYSTEM_PROMPT).toContain("function:ramp");
   });
 
+  it("requests JSON output with separate set field", () => {
+    expect(SYSTEM_PROMPT).toContain('"set"');
+    expect(SYSTEM_PROMPT).toContain("Do NOT put set codes");
+    expect(SYSTEM_PROMPT).toContain('"set":"Reality Fracture"');
+  });
+
   it("includes few-shot examples for negation and formats", () => {
     expect(SYSTEM_PROMPT).toContain("kw:flying -t:creature");
     expect(SYSTEM_PROMPT).toContain("f:modern");
