@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #0f1419;
+  --color-surface-raised: #1a2332;
+  --color-border: #2d3a4f;
+  --color-accent: #4a9eff;
+  --color-accent-hover: #6bb0ff;
+  --color-text: #e8edf4;
+  --color-text-muted: #8b9cb3;
+  --color-error: #f87171;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, #1a2332 0%, var(--color-surface) 60%);
+  color: var(--color-text);
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
