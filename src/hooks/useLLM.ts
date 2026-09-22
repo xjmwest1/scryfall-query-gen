@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CreateWebWorkerMLCEngine, type MLCEngineInterface } from "@mlc-ai/web-llm";
+import { MODEL_ID } from "../lib/model";
 import { SYSTEM_PROMPT } from "../lib/prompts";
 import { validateQuery } from "../lib/queryValidator";
 
-export const MODEL_ID = "Llama-3.2-1B-Instruct-q4f16-MLC";
+export { MODEL_ID };
 
 export type LLMStatus = "idle" | "loading" | "ready" | "generating" | "error";
 

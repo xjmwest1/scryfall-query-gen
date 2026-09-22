@@ -1,3 +1,5 @@
+import { MODEL_DOWNLOAD_LABEL } from "../lib/model";
+
 interface ModelLoaderProps {
   progress: number;
   text: string;
@@ -9,7 +11,7 @@ export function ModelLoader({ progress, text }: ModelLoaderProps) {
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-6">
       <p className="mb-2 text-sm font-medium text-[var(--color-text-muted)]">
-        Downloading AI model (~1.2 GB, cached after first visit)
+        Downloading AI model ({MODEL_DOWNLOAD_LABEL}, cached after first visit)
       </p>
       <div className="mb-3 h-2 overflow-hidden rounded-full bg-[var(--color-border)]">
         <div

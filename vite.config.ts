@@ -7,4 +7,12 @@ export default defineConfig({
   worker: {
     format: "es",
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        eval: "eval.html",
+      },
+    },
+  },
 });
