@@ -1,0 +1,77 @@
+[
+  {
+    "input": "blue counterspells that cost 2 or less",
+    "expected": "c:u t:instant o:counter mv<=2",
+    "tags": ["color", "type", "oracle", "mv"]
+  },
+  {
+    "input": "legendary creatures for commander in green and white",
+    "expected": "t:legendary t:creature id:gw f:commander",
+    "tags": ["type", "identity", "legality"]
+  },
+  {
+    "input": "red burn spells that deal damage to any target",
+    "expected": "c:r (t:instant OR t:sorcery) o:damage o:any",
+    "tags": ["color", "type", "oracle", "or"]
+  },
+  {
+    "input": "green creatures that ramp mana",
+    "expected": "c:g t:creature (o:ramp o:land o:\"add \" o:\"search your library\")",
+    "tags": ["color", "type", "oracle"]
+  },
+  {
+    "input": "cards that say destroy target artifact or enchantment",
+    "expected": "o:\"destroy target artifact\" o:\"destroy target enchantment\"",
+    "tags": ["oracle"]
+  },
+  {
+    "input": "mythic rares from the latest bloomburrow set",
+    "expected": "r:mythic s:blb",
+    "tags": ["rarity", "set"]
+  },
+  {
+    "input": "cheap white weenies with power 2 or less",
+    "expected": "c:w t:creature pow<=2 mv<=2",
+    "tags": ["color", "type", "stats", "mv"]
+  },
+  {
+    "input": "planeswalkers legal in modern",
+    "expected": "t:planeswalker f:modern",
+    "tags": ["type", "legality"]
+  },
+  {
+    "input": "cards with flying that aren't creatures",
+    "expected": "kw:flying -t:creature",
+    "tags": ["keyword", "negation"]
+  },
+  {
+    "input": "black cards that make opponents discard",
+    "expected": "c:b o:discard -o:\"discard a card\"",
+    "tags": ["color", "oracle", "negation"]
+  },
+  {
+    "input": "two mana rocks",
+    "expected": "t:artifact o:\"add \" mv=2",
+    "tags": ["type", "oracle", "mv"]
+  },
+  {
+    "input": "cards that enter the battlefield tapped",
+    "expected": "o:\"enters the battlefield tapped\"",
+    "tags": ["oracle"]
+  },
+  {
+    "input": "esper colored artifacts",
+    "expected": "t:artifact c:wub",
+    "tags": ["type", "color"]
+  },
+  {
+    "input": "big green creatures with trample power 5 or more",
+    "expected": "c:g t:creature kw:trample pow>=5",
+    "tags": ["color", "type", "keyword", "stats"]
+  },
+  {
+    "input": "reserved list cards under 50 dollars",
+    "expected": "is:reserved usd<50",
+    "tags": ["flag", "price"]
+  }
+]
