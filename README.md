@@ -30,11 +30,17 @@ Open http://localhost:5173
 
 ## Deploy (free)
 
-This app is static files only — no server required. GitHub Pages hosts it for free.
+This app is static files only — no server required. GitHub Pages hosts it for free on **public** repositories.
 
-1. In the repo on GitHub: **Settings → Pages → Build and deployment → Source** → **GitHub Actions**.
-2. Merge to `main` (or push to `main`). The [deploy workflow](.github/workflows/deploy.yml) builds and publishes automatically.
-3. Live site: **https://xjmwest1.github.io/scryfall-query-gen/**
+### One-time setup
+
+1. **Make the repo public** (required for free GitHub Pages): **Settings → General → Danger Zone → Change repository visibility → Public**.
+2. Enable Pages: **Settings → Pages → Build and deployment → Source** → **GitHub Actions**.
+3. Re-run the deploy workflow: **Actions → Deploy to GitHub Pages → Run workflow** (or push to `main`).
+
+Live site: **https://xjmwest1.github.io/scryfall-query-gen/**
+
+> **Private repo?** Free GitHub Pages only works on public repos. To keep the repo private, use [Cloudflare Pages](https://pages.cloudflare.com/) instead (also free for static sites).
 
 Local preview with the same base path as production:
 
