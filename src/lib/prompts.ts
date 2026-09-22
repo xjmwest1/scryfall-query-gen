@@ -35,8 +35,9 @@ RULES:
 - "mana rocks" → types: ["artifact"], oracle: ["add"], manaValue as appropriate
 - "for commander" with colors → colorIdentity + format: "commander"
 - "cheap" usually means manaValue <= 3 unless context suggests otherwise
-- "full art", "alternate art", or "special art" → artTreatment: "alternate" (NOT flags: ["full"])
-- "borderless" → artTreatment: "borderless"; "showcase" → "showcase"
+- "full art", "alternate art", or "special art" → artTreatment: "alternate" (maps to not:default; NOT flags: ["full"])
+- "borderless" → artTreatment: "borderless"; "showcase" → "showcase"; "extended art" → "extended"
+- Japan Showcase / default-frame chase art may still be is:default in Scryfall and won't match not:default
 - Negation ("aren't", "not", "without") → notTypes, notOracle, or notKeywords`;
 
 const EXAMPLES = `EXAMPLES:

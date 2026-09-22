@@ -24,8 +24,9 @@ describe("normalizeArtTreatment", () => {
 });
 
 describe("artTreatmentToQuery", () => {
-  it("maps alternate to a broad special-art query", () => {
+  it("maps alternate to Scryfall not:default", () => {
     expect(artTreatmentToQuery("alternate")).toBe(ALTERNATE_ART_QUERY);
+    expect(ALTERNATE_ART_QUERY).toBe("not:default");
   });
 
   it("maps specific treatments to Scryfall clauses", () => {

@@ -87,6 +87,6 @@ describe("buildScryfallQuery", () => {
       ...baseIntent,
       artTreatment: "alternate",
     });
-    expect(query).toBe("(not:default OR cn>=400)");
+    expect(query).toBe("not:default");
   });
 });
