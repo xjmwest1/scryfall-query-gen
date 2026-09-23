@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { ExamplePrompts } from "./components/ExamplePrompts";
 import { ModelLoader } from "./components/ModelLoader";
-import { QueryPreview } from "./components/QueryPreview";
 import { SearchInput } from "./components/SearchInput";
 import { useLLM } from "./hooks/useLLM";
 import { redirectToScryfall } from "./lib/scryfallUrl";
@@ -53,13 +52,7 @@ export default function App() {
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-12 sm:px-6">
       <header className="mb-10 text-center">
-        <h1 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">
-          Scryfall Query Generator
-        </h1>
-        <p className="text-[var(--color-text-muted)]">
-          Describe cards in plain English. We&apos;ll turn it into a Scryfall search and take you
-          there.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Scryfall Query Generator</h1>
       </header>
 
       <div className="space-y-6">
@@ -84,18 +77,13 @@ export default function App() {
           onSubmit={handleSubmit}
           disabled={isDisabled}
           isGenerating={isGenerating}
+          previewQuery={previewQuery}
+          onCopy={handleCopy}
         />
 
-        <ExamplePrompts
-          onSelect={setInput}
-          disabled={isDisabled}
-        />
+        <ExamplePrompts onSelect={setInput} disabled={isDisabled} />
 
-        {submitError && (
-          <p className="text-sm text-[var(--color-error)]">{submitError}</p>
-        )}
-
-        {previewQuery && <QueryPreview query={previewQuery} onCopy={handleCopy} />}
+        {submitError && <p className="text-sm text-[var(--color-error)]">{submitError}</p>}
       </div>
 
       <footer className="mt-auto pt-12 text-center text-xs text-[var(--color-text-muted)]">
