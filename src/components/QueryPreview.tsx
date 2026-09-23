@@ -1,11 +1,28 @@
 import { buildScryfallSearchUrl } from "../lib/scryfallUrl";
 
 interface QueryPreviewProps {
-  query: string;
+  query?: string;
+  isLoading?: boolean;
   onCopy?: () => void;
 }
 
-export function QueryPreview({ query, onCopy }: QueryPreviewProps) {
+export function QueryPreview({ query, isLoading, onCopy }: QueryPreviewProps) {
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-4">
+        <div className="flex items-center gap-3">
+          <span
+            className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent"
+            aria-hidden="true"
+          />
+          <p className="text-sm text-[var(--color-text-muted)]">Generating query...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!query) return null;
+
   const url = buildScryfallSearchUrl(query);
 
   return (
